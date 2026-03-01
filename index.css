@@ -7,5 +7,169 @@
 body {
     background-color: white;
     width: 100%;
-    height: 100vh;
+    min-height: 100vh;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ── Header ─────────────────────────────────── */
+.site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30px 40px 20px;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 100;
+}
+
+.logo a {
+    font-family: 'Pinyon Script', cursive;
+    font-size: 48px;
+    color: #000;
+    text-decoration: none;
+    line-height: 1;
+}
+
+.site-nav {
+    display: flex;
+    gap: 32px;
+}
+
+.nav-link {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.nav-work {
+    color: #f5a;
+}
+
+.nav-work:hover,
+.nav-work.active {
+    color: #f5a;
+}
+
+.nav-info {
+    color: #111;
+}
+
+.nav-info:hover,
+.nav-info.active {
+    color: #f5a;
+}
+
+/* ── Portfolio Grid ─────────────────────────── */
+.portfolio-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding: 10px 28px 60px;
+}
+
+.grid-item {
+    position: relative;
+    overflow: hidden;
+    display: block;
+    text-decoration: none;
+    border-radius: 4px;
+    aspect-ratio: 16 / 10;
+}
+
+.grid-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+.grid-item:hover img {
+    transform: scale(1.03);
+}
+
+/* ── Hover Overlay ──────────────────────────── */
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+
+.grid-item:hover .overlay {
+    opacity: 1;
+}
+
+.overlay-text {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-align: center;
+    padding: 8px 16px;
+}
+
+/* ── Info Section ───────────────────────────── */
+.info-section {
+    padding: 80px 40px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.info-section h2 {
+    font-size: 28px;
+    margin-bottom: 16px;
+}
+
+.info-section p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #444;
+    margin-bottom: 8px;
+}
+
+.info-section a {
+    color: #f5a;
+    text-decoration: none;
+}
+
+.info-section a:hover {
+    text-decoration: underline;
+}
+
+.hidden {
+    display: none;
+}
+
+/* ── Responsive ─────────────────────────────── */
+@media (max-width: 1024px) {
+    .portfolio-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .site-header {
+        padding: 20px 16px 12px;
+    }
+
+    .logo a {
+        font-size: 36px;
+    }
+
+    .portfolio-grid {
+        grid-template-columns: 1fr;
+        padding: 10px 16px 40px;
+    }
+
+    .overlay-text {
+        font-size: 15px;
+    }
 }
