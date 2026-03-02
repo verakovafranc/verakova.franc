@@ -74,11 +74,25 @@ body {
 .portfolio-grid {
     columns: 3;
     column-gap: 16px;
-    padding: 0 28px;
+    padding: 10px 28px 0;
 }
 
-.portfolio-grid:first-child {
-    padding-top: 10px;
+/* JS converts to flex columns for seamless infinite scroll */
+.portfolio-grid.masonry-flex {
+    display: flex;
+    align-items: flex-start;
+}
+
+.masonry-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+.masonry-col .grid-item {
+    margin-bottom: 0;
 }
 
 .grid-item {
@@ -165,6 +179,9 @@ body {
     .portfolio-grid {
         columns: 2;
     }
+    .portfolio-grid.masonry-flex {
+        /* column count handled by JS */
+    }
 }
 
 @media (max-width: 600px) {
@@ -178,7 +195,7 @@ body {
 
     .portfolio-grid {
         columns: 1;
-        padding: 0 16px;
+        padding: 10px 16px 0;
     }
 
     .overlay-text {

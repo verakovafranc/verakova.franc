@@ -21,13 +21,67 @@ document.addEventListener('DOMContentLoaded', () => {
         navWork.classList.remove('active');
     });
 
-    // ── Infinite scroll loop ───────────────────────────
+    // ── Masonry + Infinite scroll ─────────────────────
     const grid = document.querySelector('.portfolio-grid');
 
-    // Save the original items as individual HTML strings
-    const originalItems = Array.from(grid.querySelectorAll('.grid-item'))
+    // Save original items as HTML before modifying the DOM
+    const originalItemsHTML = Array.from(grid.querySelectorAll('.grid-item'))
         .map(el => el.outerHTML);
+    const totalItems = originalItemsHTML.length;
 
+    function getColCount() {
+        if (window.innerWidth <= 600) return 1;
+        if (window.innerWidth <= 1024) return 2;
+        return 3;
+    }
+
+    // Distribute items sequentially (same order as CSS columns: fill left to right)
+    function distributeItems(items, cols) {
+        const result = Array.from({ length: cols }, () => []);
+        let idx = 0;
+        let remaining = items.length;
+        for (let c = 0; c < cols; c++) {
+            const count = Math.ceil(remaining / (cols - c));
+            for (let i = 0; i < count; i++) {
+                result[c].push(items[idx++]);
+            }
+            remaining -= count;
+        }
+        return result;
+    }
+
+    let colCount = getColCount();
+    let colElements = [];
+    let setsCount = 0;
+
+    function buildGrid() {
+        colCount = getColCount();
+        grid.innerHTML = '';
+        grid.classList.add('masonry-flex');
+        colElements = [];
+        setsCount = 0;
+        for (let i = 0; i < colCount; i++) {
+            const col = document.createElement('div');
+            col.className = 'masonry-col';
+            grid.appendChild(col);
+            colElements.push(col);
+        }
+        appendSet();
+    }
+
+    function appendSet() {
+        const distributed = distributeItems(originalItemsHTML, colCount);
+        distributed.forEach((items, colIdx) => {
+            items.forEach(html => {
+                colElements[colIdx].insertAdjacentHTML('beforeend', html);
+            });
+        });
+        setsCount++;
+    }
+
+    buildGrid();
+
+    // Infinite scroll
     let appending = false;
 
     function checkScroll() {
@@ -36,29 +90,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const viewportH = window.innerHeight;
         const docH = document.documentElement.scrollHeight;
 
-        // When the user is within 800px of the bottom, append another set
         if (scrollY + viewportH >= docH - 800) {
             appending = true;
-            originalItems.forEach(html => {
-                grid.insertAdjacentHTML('beforeend', html);
-            });
+            appendSet();
             appending = false;
         }
 
-        // Prune items from the top to prevent DOM bloat (keep max ~8 sets)
-        const allItems = grid.querySelectorAll('.grid-item');
-        const maxItems = originalItems.length * 8;
-        if (allItems.length > maxItems) {
-            const toRemove = allItems.length - maxItems;
-            // Measure scroll adjustment before removing
+        // Prune oldest set if too many
+        if (setsCount > 8) {
+            const distributed = distributeItems(originalItemsHTML, colCount);
             const heightBefore = document.documentElement.scrollHeight;
-            for (let i = 0; i < toRemove; i++) {
-                allItems[i].remove();
-            }
+            distributed.forEach((items, colIdx) => {
+                const colItems = colElements[colIdx].querySelectorAll('.grid-item');
+                for (let i = 0; i < items.length && i < colItems.length; i++) {
+                    colItems[i].remove();
+                }
+            });
             const heightAfter = document.documentElement.scrollHeight;
             window.scrollBy(0, heightAfter - heightBefore);
+            setsCount--;
         }
     }
 
     window.addEventListener('scroll', checkScroll, { passive: true });
+
+    // Rebuild on resize if column count changes
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            if (getColCount() !== colCount) {
+                buildGrid();
+            }
+        }, 200);
+    });
 });
