@@ -74,7 +74,11 @@ body {
 .portfolio-grid {
     columns: 3;
     column-gap: 16px;
-    padding: 10px 28px 0;
+    padding: 0 28px;
+}
+
+.portfolio-grid:first-child {
+    padding-top: 10px;
 }
 
 .grid-item {
@@ -174,7 +178,7 @@ body {
 
     .portfolio-grid {
         columns: 1;
-        padding: 10px 16px 40px;
+        padding: 0 16px;
     }
 
     .overlay-text {
