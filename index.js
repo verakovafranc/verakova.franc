@@ -29,6 +29,14 @@ document.addEventListener('DOMContentLoaded', () => {
         .map(el => el.outerHTML);
     const totalItems = originalItemsHTML.length;
 
+    // Preload all images so they're cached when appended in loop iterations
+    const imageSrcs = Array.from(grid.querySelectorAll('img')).map(img => img.src);
+    const imageCache = {};
+    imageSrcs.forEach(src => {
+        const preload = new Image();
+        preload.src = src;
+        imageCache[src] = preload;
+    });
     function getColCount() {
         if (window.innerWidth <= 600) return 1;
         if (window.innerWidth <= 1024) return 2;
@@ -73,13 +81,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const distributed = distributeItems(originalItemsHTML, colCount);
         distributed.forEach((items, colIdx) => {
             items.forEach(html => {
-                colElements[colIdx].insertAdjacentHTML('beforeend', html);
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                const item = temp.firstElementChild;
+                item.querySelectorAll('img').forEach(img => {
+                    img.loading = 'eager';
+                    img.decoding = 'async';
+                    // If cached version is complete, copy src to trigger instant render
+                    const cached = imageCache[img.src];
+                    if (cached && cached.complete && cached.naturalWidth > 0) {
+                        img.src = cached.src;
+                    }
+                });
+                colElements[colIdx].appendChild(item);
             });
         });
         setsCount++;
     }
 
     buildGrid();
+    // Seed extra sets upfront so images load well before user reaches them
+    appendSet();
+    appendSet();
 
     // Infinite scroll
     let appending = false;
@@ -90,7 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const viewportH = window.innerHeight;
         const docH = document.documentElement.scrollHeight;
 
-        if (scrollY + viewportH >= docH - 800) {
+        // Trigger 3 viewports ahead so images have time to load
+        if (scrollY + viewportH >= docH - viewportH * 3) {
             appending = true;
             appendSet();
             appending = false;
