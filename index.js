@@ -22,18 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ── Infinite scroll loop ───────────────────────────
-    const wrapper = document.querySelector('.portfolio-wrapper');
     const grid = document.querySelector('.portfolio-grid');
-    // Save the original grid's inner HTML
-    const originalGridHTML = grid.innerHTML;
 
-    // Seed with extra copies so there's content to scroll into
-    for (let i = 0; i < 2; i++) {
-        const clone = document.createElement('div');
-        clone.className = 'portfolio-grid';
-        clone.innerHTML = originalGridHTML;
-        wrapper.appendChild(clone);
-    }
+    // Save the original items as individual HTML strings
+    const originalItems = Array.from(grid.querySelectorAll('.grid-item'))
+        .map(el => el.outerHTML);
 
     let appending = false;
 
@@ -43,21 +36,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const viewportH = window.innerHeight;
         const docH = document.documentElement.scrollHeight;
 
-        // When the user is within 800px of the bottom, append another copy
+        // When the user is within 800px of the bottom, append another set
         if (scrollY + viewportH >= docH - 800) {
             appending = true;
-            const clone = document.createElement('div');
-            clone.className = 'portfolio-grid';
-            clone.innerHTML = originalGridHTML;
-            wrapper.appendChild(clone);
+            originalItems.forEach(html => {
+                grid.insertAdjacentHTML('beforeend', html);
+            });
             appending = false;
         }
 
-        // Keep DOM from growing forever: max 8 grid blocks
-        const grids = wrapper.querySelectorAll('.portfolio-grid');
-        if (grids.length > 8) {
+        // Prune items from the top to prevent DOM bloat (keep max ~8 sets)
+        const allItems = grid.querySelectorAll('.grid-item');
+        const maxItems = originalItems.length * 8;
+        if (allItems.length > maxItems) {
+            const toRemove = allItems.length - maxItems;
+            // Measure scroll adjustment before removing
             const heightBefore = document.documentElement.scrollHeight;
-            grids[0].remove();
+            for (let i = 0; i < toRemove; i++) {
+                allItems[i].remove();
+            }
             const heightAfter = document.documentElement.scrollHeight;
             window.scrollBy(0, heightAfter - heightBefore);
         }
